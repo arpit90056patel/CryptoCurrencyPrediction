@@ -1,0 +1,51 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('/content/coin_Bitcoin.csv')
+
+print(df.head())
+
+df['Date'] = pd.to_datetime(df['Date'])
+df.set_index('Date', inplace=True)
+
+df['SMA_10'] = df['Close'].rolling(window=10).mean() 
+df['SMA_50'] = df['Close'].rolling(window=50).mean()
+
+plt.figure(figsize=(14, 7))
+plt.plot(df['Close'], label='Actual Price', color='blue')
+plt.plot(df['SMA_10'], label='10-Day SMA', color='green')
+plt.plot(df['SMA_50'], label='50-Day SMA', color='red')
+plt.title('Cryptocurrency Price with Moving Averages')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.grid()
+plt.show()
+
+
+N = 10
+recent_prices = df['Close'].iloc[-N:].values
+trend = np.mean(np.diff(recent_prices))
+
+days_to_predict = 10  
+future_prices = [last_price + trend * i for i in range(1, days_to_predict + 1)]
+
+
+future_dates = pd.date_range(start=df.index[-1], periods=days_to_predict + 1, freq='D')[1:]
+future_df = pd.DataFrame({'Date': future_dates, 'Predicted_Price': future_prices})
+future_df.set_index('Date', inplace=True)
+
+
+plt.figure(figsize=(14, 7))
+plt.plot(df['Close'], label='Actual Price', color='blue')
+plt.plot(future_df['Predicted_Price'], label='Predicted Price', color='orange', linestyle='dashed')
+plt.title('Cryptocurrency Price Prediction (Simple Extrapolation)')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.grid()
+plt.show()
+
+
+print(future_df)
